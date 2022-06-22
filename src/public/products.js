@@ -1,6 +1,8 @@
 const socket = io.connect();
 
 function renderProd(data) {
+    console.log("*----------------------------------");
+    console.log(data);
     // document.getElementById('products').innerHTML = html;
     renderTitle(data);
     //renderPrice(data);
@@ -50,8 +52,8 @@ function addProduct(e) {
         price: document.getElementById('price').value,
         thumbnail: document.getElementById('thumbnail').value 
     }
-    // console.log("_________");
-    // console.log(obj);
+    //  console.log("_________");
+    //  console.log(obj);
     socket.emit('new-products', obj);
     
     document.getElementById('name').value = '';

@@ -4,7 +4,7 @@ faker.locale = 'es';
 function generarProducto(id) {
     return {
         id: id,
-        nombre: faker.name.findName(),
+        name: faker.name.findName(),
         price: faker.datatype.number(),
         thumbnail: faker.image.avatar()
     }

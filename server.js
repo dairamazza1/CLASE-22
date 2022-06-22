@@ -1,41 +1,20 @@
 //EXPRESS
 const express = require('express')
 const app = express();
+// VIEWS
+app.set('views', './src/views');
+app.set('view engine', 'ejs'); //se define extension (motor de plantilla)
+app.use(express.static("./src/public")); // Archivos estaticos
 
-//ROUTES
+// MIDDLEWARES
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// ROUTES
 const productsRoutes = require('./src/routes/productsRoutes');
 const cartRoutes = require('./src/routes/carritoRoutes');
 
-// DAOS
-const { ProductoDaoArchivo } = require('./src/daos/productos/ProductosDaoArchivo');
-let product = new ProductoDaoArchivo();
-
-// VIEWS
-app.set('view engine', 'ejs'); //se define extension (motor de plantilla)
-app.use(express.static(__dirname + "/public"));
-app.use(express.json()); //tiene q estar para qe se llene el req body
-const urlencodedParser = app.use(express.urlencoded({extended:true}))
-
-// WEB SOCKETS
-const { Server: HttpServer } = require('http');
-const { Server: IOServer } = require('socket.io');
-
-const httpServer = new HttpServer(app);
-const io = new IOServer(httpServer);
-
-
-//chat
-io.on('connection', async (socket) => {
-    const text = await chat.getAll(knexSqLite).then( (obj) =>{  
-        socket.emit('text', obj);
-    })
-    socket.on('new-text', async data => {
-        const saveObj = await chat.save(knexSqLite,data);
-        io.sockets.emit('text', chat.getAll(knexSqLite));
-    })
-})
-
-
+// ENDPOINTS
 app.use('/api', productsRoutes);
 // app.use('/api/carrito', cartRoutes);
 app.get('*', function (req,res) {

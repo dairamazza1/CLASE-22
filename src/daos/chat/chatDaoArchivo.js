@@ -1,6 +1,6 @@
 const { ContenedorArchivo } = require("../../contenedores/ContenedorArchivo");
 
-class chatDaoArchivo extends ContenedorArchivo{
+class ChatDaoArchivo extends ContenedorArchivo{
     constructor() {
         super('./src/data/chat.txt');
         let products = this.getAll().then(res=>{
@@ -43,4 +43,4 @@ class chatDaoArchivo extends ContenedorArchivo{
     
 }
 
-module.exports = { chatDaoArchivo }
+module.exports = { ChatDaoArchivo }
