@@ -2,18 +2,20 @@
 const express = require('express');
 const app = express();
 
-const { Router } = express;
-const productRouter = Router();
 const { percentage } = require('../utils/percentage') 
 const { normalizr } = require('../utils/normalizrChat') 
 
-// WEB SOCKETS
+
+// WEB SOCKETS                
 const { Server: HttpServer } = require('http');
 const { Server: IOServer } = require('socket.io');
 
 const httpServer = new HttpServer(app);
 const io = new IOServer(httpServer);
-app.use(express.static("../public"));
+
+// MIDDLEWARE
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // DAOS
 const { ProductoDaoArchivo } = require('../daos/productos/ProductosDaoArchivo');
@@ -32,6 +34,7 @@ let chat = new ChatDaoArchivo();
 io.on('connection', async(socket) => {
     console.log("connection WEB SOCKET");
     const prod = await product.getAll().then( (obj) =>{
+        console.log(data);
         socket.emit('products', obj);
     })
 
@@ -41,7 +44,7 @@ io.on('connection', async(socket) => {
         io.sockets.emit('products', await product.getAll());
     })
 })
-//chat
+//chat WEB SOCKET 
 io.on('connection', async (socket) => {
     //envío chat normalizado
     const text = await chat.getAll().then( (obj) =>{ 
@@ -73,7 +76,7 @@ io.on('connection', async (socket) => {
 
 
 //**************** TEST PRODUCTOS FAKER ****************
-productRouter.post('/productos-test', async (req, res, next) => {
+app.post('/productos-test', async (req, res, next) => {
     try {
         res.json(await product.popular(req.query.cant));
     } catch (error) {
@@ -81,7 +84,7 @@ productRouter.post('/productos-test', async (req, res, next) => {
     }
 })
 
-productRouter.get('/productos-test', async (req, res, next) => {
+app.get('/productos-test', async (req, res, next) => {
     try {
         let products = product.getAll().then(obj => {
             res.json({allProducts: obj});       
@@ -91,7 +94,7 @@ productRouter.get('/productos-test', async (req, res, next) => {
     }
 })
 //*******************************************************
-productRouter.post('/', async (req, res) => {
+app.post('/', async (req, res) => {
     let products = req.body;
     console.log(products);
     if (products && products.name && products.thumbnail && products.price ) {
@@ -103,26 +106,27 @@ productRouter.post('/', async (req, res) => {
         res.json({result: 'No fue posible cargar el producto'});
     }
 });
-productRouter.get('/', (req, res) => {
-    // let products = product.getAll().then(obj => {
-    //     res.json({allProducts: obj});       
-    // }); 
+app.get('/', async (req, res) => {
+    try {
+        let listExists = false;
+        let listNotExists = false;
+        console.log("entró");
+        const prod = await product.getAll().then( (obj) =>{
+            obj.length  > 0 ?  res.render('pages/index', {listExists: true }) : res.render('pages/index', {listNotExists: true}) ;
+        }) 
+    } catch (error) {
+        console.log(error);
+    }
     
-    listExists = false;
-    listNotExists = false;
     
-    const prod = product.getAll().then( (obj) =>{
-        //console.log(obj);
-        obj.length  > 0 ?  res.render('pages/index', {listExists: true }) : res.render('pages/index', {listNotExists: true}) ;
-    }) 
 });
-productRouter.get("/:id", (req, res) => {
+app.get("/:id", (req, res) => {
     let id = isNaN(req.params.id) ? req.params.id : parseInt(req.params.id) ;
     let products = product.getProdById(id).then(obj => {
         res.json(obj);       
     });
 });
-productRouter.put('/:id', (req,resp) => {
+app.put('/:id', (req,resp) => {
     let id = isNaN(req.params.id) ? req.params.id : parseInt(req.params.id) ;
     try{
         const prodAux = product.updateByID(id,req.body).then( () =>{
@@ -134,7 +138,7 @@ productRouter.put('/:id', (req,resp) => {
         resp.send('No se puede actualizar el producto')
     }   
 }) 
-productRouter.delete('/:id', (req,resp) => {
+app.delete('/:id', (req,resp) => {
     let id = isNaN(req.params.id) ? req.params.id : parseInt(req.params.id) ;
     try{    
         const prodAux = product.deleteById(id);
@@ -145,4 +149,4 @@ productRouter.delete('/:id', (req,resp) => {
 }) 
 
 
-module.exports = productRouter;
+module.exports = {app , httpServer};

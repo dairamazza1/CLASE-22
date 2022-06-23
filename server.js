@@ -1,21 +1,22 @@
 //EXPRESS
 const express = require('express')
 const app = express();
-// VIEWS
-app.set('views', './src/views');
-app.set('view engine', 'ejs'); //se define extension (motor de plantilla)
-app.use(express.static("./src/public")); // Archivos estaticos
 
-// MIDDLEWARES
+// ROUTES
+const  httpServer  = require('./src/routes/productsRoutes');
+// const cartRoutes = require('./src/routes/carritoRoutes');
+
+// VIEWS
+app.set('views', __dirname + '/src/views');
+app.set('view engine', 'ejs'); //se define extension (motor de plantilla)
+app.use(express.static( __dirname + "/src/public")); // Archivos estaticos
+
+// MIDDLEWARE
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ROUTES
-const productsRoutes = require('./src/routes/productsRoutes');
-const cartRoutes = require('./src/routes/carritoRoutes');
-
 // ENDPOINTS
-app.use('/api', productsRoutes);
+app.use('/api', httpServer.app );
 // app.use('/api/carrito', cartRoutes);
 app.get('*', function (req,res) {
     res.status(404).send({
@@ -28,6 +29,7 @@ app.get('*', function (req,res) {
 
 ////////////////////////////////////////////////
 
-const server = app.listen(8080, () => {
-    console.log('La aplicacion esta escuchando');
+const server = httpServer.httpServer.listen(8080, () => {
+    console.log('La aplicacion esta escuchando' );
 })
+httpServer.httpServer.on("Error", (error) => console.log("error en servidor ${error}"));
